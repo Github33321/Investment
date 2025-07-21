@@ -1,4 +1,4 @@
-package model
+package models
 
 type Operation struct {
 	ID            string  `json:"id"`
