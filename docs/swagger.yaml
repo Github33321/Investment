@@ -1,0 +1,184 @@
+basePath: /
+definitions:
+  models.Operation:
+    properties:
+      currency:
+        type: string
+      date:
+        type: string
+      figi:
+        type: string
+      float_payment:
+        type: number
+      id:
+        type: string
+      is_canceled:
+        type: boolean
+      operation_type:
+        type: string
+      price:
+        type: number
+      quantity:
+        type: number
+      type:
+        type: string
+    type: object
+  models.PriceResponse:
+    properties:
+      name:
+        type: string
+      price:
+        type: number
+    type: object
+  models.Summary:
+    properties:
+      commissions:
+        type: number
+      created_at:
+        type: string
+      id:
+        type: integer
+      net_stock_profit:
+        type: number
+      portfolio_value:
+        type: number
+      taxes:
+        type: number
+      total_buys:
+        type: number
+      total_input:
+        type: number
+      total_output:
+        type: number
+      total_sells:
+        type: number
+      turnover:
+        type: number
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API для генерации и получения отчётов по операциям Tinkoff Invest.
+  title: TInvest Report API
+  version: "1.0"
+paths:
+  /figi/{figi}:
+    get:
+      description: Возвращает последнюю цену по указанному FIGI
+      parameters:
+      - description: FIGI инструмента
+        in: path
+        name: figi
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PriceResponse'
+        "400":
+          description: FIGI не указан
+          schema:
+            type: string
+        "500":
+          description: Ошибка Tinkoff API
+          schema:
+            type: string
+      summary: Получение цены
+      tags:
+      - tinkoff
+  /spravka:
+    get:
+      description: Возвращает операции из Tinkoff Invest
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Operation'
+            type: array
+        "500":
+          description: Ошибка Tinkoff API
+          schema:
+            type: string
+      summary: Операции
+      tags:
+      - tinkoff
+  /summaries:
+    get:
+      description: Возвращает все записи или за конкретную дату
+      parameters:
+      - description: Дата в формате YYYY-MM-DD
+        in: query
+        name: date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Summary'
+            type: array
+        "500":
+          description: Ошибка при получении
+          schema:
+            type: string
+      summary: Получение отчётов
+      tags:
+      - summary
+  /summary:
+    get:
+      description: Возвращает рассчитанный отчёт без сохранения
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Summary'
+        "500":
+          description: Ошибка сервера
+          schema:
+            type: string
+      summary: Генерация отчёта
+      tags:
+      - summary
+  /summary/save:
+    post:
+      consumes:
+      - application/json
+      description: Сохраняет отчёт, переданный в теле запроса
+      parameters:
+      - description: Данные отчёта
+        in: body
+        name: summary
+        required: true
+        schema:
+          $ref: '#/definitions/models.Summary'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Summary saved successfully
+          schema:
+            type: string
+        "400":
+          description: Invalid JSON
+          schema:
+            type: string
+        "500":
+          description: Ошибка при сохранении
+          schema:
+            type: string
+      summary: Сохранение отчёта
+      tags:
+      - summary
+schemes:
+- http
+swagger: "2.0"

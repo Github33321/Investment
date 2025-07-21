@@ -1,0 +1,13 @@
+POST http://localhost:8080/summary/save
+Content-Type: application/json
+
+{"total_input": 100000,
+  "total_output": 98000,
+  "turnover": 250000,
+  "total_buys": 120000,
+  "total_sells": 130000,
+  "portfolio_value": 5000,
+  "commissions": 300,
+  "taxes": 200,
+  "net_stock_profit": 1000}
+

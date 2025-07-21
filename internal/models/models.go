@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 type Operation struct {
 	ID            string  `json:"id"`
 	Currency      string  `json:"currency"`
@@ -19,13 +21,15 @@ type PriceResponse struct {
 }
 
 type Summary struct {
-	TotalInput     float64 `json:"total_input"`
-	TotalOutput    float64 `json:"total_output"`
-	Turnover       float64 `json:"turnover"`
-	TotalBuys      float64 `json:"total_buys"`
-	TotalSells     float64 `json:"total_sells"`
-	PortfolioValue float64 `json:"portfolio_value"`
-	Commissions    float64 `json:"commissions"`
-	Taxes          float64 `json:"taxes"`
-	NetStockProfit float64 `json:"net_stock_profit"`
+	ID             int       `db:"id" json:"id"`
+	TotalInput     float64   `db:"total_input" json:"total_input"`
+	TotalOutput    float64   `db:"total_output" json:"total_output"`
+	Turnover       float64   `db:"turnover" json:"turnover"`
+	TotalBuys      float64   `db:"total_buys" json:"total_buys"`
+	TotalSells     float64   `db:"total_sells" json:"total_sells"`
+	PortfolioValue float64   `db:"portfolio_value" json:"portfolio_value"`
+	Commissions    float64   `db:"commissions" json:"commissions"`
+	Taxes          float64   `db:"taxes" json:"taxes"`
+	NetStockProfit float64   `db:"net_stock_profit" json:"net_stock_profit"`
+	CreatedAt      time.Time `db:"created_at" json:"created_at"`
 }

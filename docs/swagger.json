@@ -1,0 +1,281 @@
+{
+    "schemes": [
+        "http"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "API для генерации и получения отчётов по операциям Tinkoff Invest.",
+        "title": "TInvest Report API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/figi/{figi}": {
+            "get": {
+                "description": "Возвращает последнюю цену по указанному FIGI",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tinkoff"
+                ],
+                "summary": "Получение цены",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "FIGI инструмента",
+                        "name": "figi",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.PriceResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "FIGI не указан",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка Tinkoff API",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/spravka": {
+            "get": {
+                "description": "Возвращает операции из Tinkoff Invest",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tinkoff"
+                ],
+                "summary": "Операции",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Operation"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка Tinkoff API",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/summaries": {
+            "get": {
+                "description": "Возвращает все записи или за конкретную дату",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "summary"
+                ],
+                "summary": "Получение отчётов",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Дата в формате YYYY-MM-DD",
+                        "name": "date",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Summary"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка при получении",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/summary": {
+            "get": {
+                "description": "Возвращает рассчитанный отчёт без сохранения",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "summary"
+                ],
+                "summary": "Генерация отчёта",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Summary"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/summary/save": {
+            "post": {
+                "description": "Сохраняет отчёт, переданный в теле запроса",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "summary"
+                ],
+                "summary": "Сохранение отчёта",
+                "parameters": [
+                    {
+                        "description": "Данные отчёта",
+                        "name": "summary",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Summary"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Summary saved successfully",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid JSON",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка при сохранении",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.Operation": {
+            "type": "object",
+            "properties": {
+                "currency": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "figi": {
+                    "type": "string"
+                },
+                "float_payment": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_canceled": {
+                    "type": "boolean"
+                },
+                "operation_type": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "quantity": {
+                    "type": "number"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.PriceResponse": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                }
+            }
+        },
+        "models.Summary": {
+            "type": "object",
+            "properties": {
+                "commissions": {
+                    "type": "number"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "net_stock_profit": {
+                    "type": "number"
+                },
+                "portfolio_value": {
+                    "type": "number"
+                },
+                "taxes": {
+                    "type": "number"
+                },
+                "total_buys": {
+                    "type": "number"
+                },
+                "total_input": {
+                    "type": "number"
+                },
+                "total_output": {
+                    "type": "number"
+                },
+                "total_sells": {
+                    "type": "number"
+                },
+                "turnover": {
+                    "type": "number"
+                }
+            }
+        }
+    }
+}

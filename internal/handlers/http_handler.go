@@ -6,6 +6,7 @@ import (
 	"math"
 	"net/http"
 	"strings"
+	"tinvest_report/internal/models"
 
 	"tinvest_report/internal/service"
 )
@@ -18,6 +19,14 @@ func NewHandler(app *service.App) *Handler {
 	return &Handler{app: app}
 }
 
+// @Summary Операции
+// @Description Возвращает операции из Tinkoff Invest
+// @Tags tinkoff
+// @Produce json
+// @Success 200 {array} models.Operation
+// @Failure 500 {string} string "Ошибка Tinkoff API"
+// @Router /spravka [get]
+
 func (h *Handler) SpravkaHandler(w http.ResponseWriter, r *http.Request) {
 	ops, err := h.app.Tinkoff.GetOperations()
 	if err != nil {
@@ -26,6 +35,16 @@ func (h *Handler) SpravkaHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	json.NewEncoder(w).Encode(ops)
 }
+
+// @Summary Получение цены
+// @Description Возвращает последнюю цену по указанному FIGI
+// @Tags tinkoff
+// @Produce json
+// @Param figi path string true "FIGI инструмента"
+// @Success 200 {object} models.PriceResponse
+// @Failure 400 {string} string "FIGI не указан"
+// @Failure 500 {string} string "Ошибка Tinkoff API"
+// @Router /figi/{figi} [get]
 
 func (h *Handler) FigiHandler(w http.ResponseWriter, r *http.Request) {
 	figi := strings.TrimPrefix(r.URL.Path, "/figi/")
@@ -52,6 +71,14 @@ type Summary struct {
 	Taxes          float64 `json:"taxes"`
 	NetStockProfit float64 `json:"net_stock_profit"`
 }
+
+// @Summary Генерация отчёта
+// @Description Возвращает рассчитанный отчёт без сохранения
+// @Tags summary
+// @Produce json
+// @Success 200 {object} models.Summary
+// @Failure 500 {string} string "Ошибка сервера"
+// @Router /summary [get]
 
 func (h *Handler) SummaryHandler(w http.ResponseWriter, r *http.Request) {
 	ops, err := h.app.Tinkoff.GetOperations()
@@ -127,5 +154,57 @@ func (h *Handler) SummaryHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(summary); err != nil {
 		http.Error(w, "Ошибка кодирования", http.StatusInternalServerError)
+	}
+}
+
+// @Summary Сохранение отчёта
+// @Description Сохраняет отчёт, переданный в теле запроса
+// @Tags summary
+// @Accept json
+// @Produce json
+// @Param summary body models.Summary true "Данные отчёта"
+// @Success 200 {string} string "Summary saved successfully"
+// @Failure 400 {string} string "Invalid JSON"
+// @Failure 500 {string} string "Ошибка при сохранении"
+// @Router /summary/save [post]
+
+func (h *Handler) SaveSummaryHandler(w http.ResponseWriter, r *http.Request) {
+	var summary models.Summary
+	if err := json.NewDecoder(r.Body).Decode(&summary); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.app.Repo.SaveSummary(r.Context(), summary); err != nil {
+
+		http.Error(w, "Failed to save summary: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Summary saved successfully"))
+}
+
+// @Summary Получение отчётов
+// @Description Возвращает все записи или за конкретную дату
+// @Tags summary
+// @Produce json
+// @Param date query string false "Дата в формате YYYY-MM-DD"
+// @Success 200 {array} models.Summary
+// @Failure 500 {string} string "Ошибка при получении"
+// @Router /summaries [get]
+
+func (h *Handler) GetSummariesHandler(w http.ResponseWriter, r *http.Request) {
+	queryDate := r.URL.Query().Get("date") // формат: YYYY-MM-DD
+
+	summaries, err := h.app.Repo.GetSummaries(r.Context(), queryDate)
+	if err != nil {
+		http.Error(w, "Ошибка получения данных: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(summaries); err != nil {
+		http.Error(w, "Ошибка кодирования JSON", http.StatusInternalServerError)
 	}
 }
